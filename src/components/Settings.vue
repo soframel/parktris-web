@@ -7,36 +7,49 @@
     <p>Password: <input v-model="password" type="password" placeholder="password"></p>
   
       <div>
-      <b-button v-on:click="checkConnection">Check Connection</b-button>
+      <b-button v-on:click="checkConnection">Validate</b-button>
       </div>  
+      <div class="message">{{message}}</div>
   </div>
 </template>
 
 <script>
+
+import axios from 'axios';
+
 export default {
   name: 'Settings',
-  /*props: {
-    url: {type: String, default:"http://localhost:8080" },
-    username: {type: String, default:"login" },
-    password:{type: String, default:"password" },
-  },*/
   data() {
     return {
        url:null,
       username:null,
-      password:null
+      password:null,
+      message:""
     }
   },
   //Save settings in Local Storage
   methods: {
     checkConnection: function(){
-      alert("checkConnection with url={{url}}");
-    },
-    save: function(){
-      alert("save");
-    },
-    cancel: function(){
-      alert("ccancelcanheckConnection");
+      axios.get(this.url + "/areas", {
+         auth: {
+          username: this.username,
+          password: this.password
+        }, 
+        withCredentials: true
+      }
+      )
+      .then(response => {
+        var settings={
+          url: this.url,
+          username: this.username,
+          password: this.password
+        }
+        this.$emit('settings', JSON.stringify(settings))
+        this.message="Connection is working, settings now used on this site."
+    })
+      .catch(function (error) {
+        this.message="Connection problem: "+error
+      }.bind(this))
     }
   },
   mounted() {
@@ -79,5 +92,8 @@ li {
 }
 a {
   color: #42b983;
+}
+.message{
+  font-style: italic
 }
 </style>

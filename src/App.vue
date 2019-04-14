@@ -8,7 +8,7 @@
     </b-row>
     </b-container>   
      <!-- route outlet -->
-    <router-view></router-view>
+    <router-view  @settings="settingsChanged"></router-view>
   </div>
 </template>
 
@@ -18,11 +18,18 @@ export default {
   name: 'app',
   props: {
   },
+  data() {
+    return {
+       settings:null,
+    }
+  },
   components: {
   },
    methods: {
-    showSettings: function(){
-      alert("showSettings");
+    settingsChanged: function(settingsEvent){
+      //TODO: remove, for debugging only
+      console.log("settingsChanged: "+settingsEvent);
+      this.settings=settingsEvent;
     }
    }
 }
