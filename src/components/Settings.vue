@@ -38,7 +38,7 @@ export default {
         withCredentials: true
       }
       )
-      .then(response => {
+      .then(function(){
         var settings={
           url: this.url,
           username: this.username,
@@ -46,7 +46,7 @@ export default {
         }
         this.$emit('settings', JSON.stringify(settings))
         this.message="Connection is working, settings now used on this site."
-    })
+    }.bind(this))
       .catch(function (error) {
         this.message="Connection problem: "+error
       }.bind(this))
