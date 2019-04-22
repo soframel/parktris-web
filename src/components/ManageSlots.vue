@@ -3,13 +3,13 @@
       <h1>Manage Your Slots</h1>
    
    <p>Your parking slots</p>
-  <table>
+  <table class="list">
     <thead>
         <th>Name</th>
         <th>Description</th>
         <th>Area</th>
     </thead>
-    <tr v-for="slot in this.slots">
+    <tr v-for="slot in this.slots" v-bind:key="slot.id">
       <td>{{slot.name}}</td>
       <td>{{slot.desc}}</td>
       <td>{{findAreaNameById(slot.areaId)}}</td>
@@ -19,41 +19,36 @@
   </table>
  <b-button v-on:click="addSlot()">Add a new slot</b-button>
 
+<!--Edit modal window -->
 <div v-if="showEdit" class="modal-mask">
-
     <div class="modal-wrapper">
         <div class="modal-container">
-
           <div class="modal-header">
             <slot name="header">
               <h3>Edit Slot</h3>
             </slot>
           </div>
-
           <div class="modal-body">
-            <slot name="body">
-              
+            <slot name="body">              
                 <p>Name: <input v-model="slot.name"></p>
                 <p>Description: <input v-model="slot.desc"></p>
                 <p>
                   <select class="form-control" v-model="slot.areaId">
-                    <option v-for="area in this.areas" v-bind:value="area.id">
-                      {{area.name}} ({{area.desc}})
+                    <option v-for="area in this.areas" v-bind:value="area.id" v-bind:key="area.id">
+                      {{area.name}} <template v-if="area.desc">({{area.desc}})</template>
                     </option>
                   </select>
                 </p>
-
             </slot>
           </div>
-
           <div class="modal-footer">
             <slot name="footer">
-              <button class="modal-default-button" @click="showEdit = false">
+              <b-button class="modal-default-button" @click="showEdit = false">
                 Cancel
-              </button>
-              <button class="modal-default-button" @click="saveSlot">
+              </b-button>
+              <b-button class="modal-default-button" @click="saveSlot">
                 Save
-              </button>
+              </b-button>
             </slot>
           </div>
         </div>
@@ -238,6 +233,10 @@ li {
 }
 a {
   color: #42b983;
+}
+
+.list{
+  width: 98%
 }
 
 .modal-mask {
