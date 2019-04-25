@@ -11,6 +11,8 @@ export function loadAreas(settings){
      );
 }
 
+/************* SLOTS  **************/
+
 export function loadSlots(settings){
     return axios.get(settings.url + "/slots?owner="+settings.username, {
         auth: {
@@ -21,6 +23,46 @@ export function loadSlots(settings){
      }
      );
 }
+
+export function deleteSlot(settings, slot){
+    axios.delete(settings.url + "/slots/"+slot.id,
+         {
+         auth: {
+          username: settings.username,
+          password: settings.password
+        }, 
+        withCredentials: true
+        })
+}
+
+export function saveSlot(settings, slot){
+    if(slot.id){
+        //update
+        return axios.put(settings.url + "/slots/"+slot.id,
+         slot, 
+         {
+         auth: {
+          username: settings.username,
+          password: settings.password
+        }, 
+        withCredentials: true
+        })      
+      }
+      else{
+        //create
+        return axios.post(settings.url + "/slots/",
+         slot, 
+         {
+         auth: {
+          username: settings.username,
+          password: settings.password
+        }, 
+        withCredentials: true
+        })
+    }
+}
+
+/***************** FREE SLOTS DECLARATIONS ******************/
 
 export function loadDeclarations(settings){
     return axios.get(settings.url + "/declarations?owner="+settings.username, {
