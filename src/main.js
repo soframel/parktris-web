@@ -13,11 +13,13 @@ Vue.config.productionTip = false
 import Settings from './components/Settings.vue'
 import Hello from './components/Hello.vue'
 import ManageSlots from './components/ManageSlots.vue'
+import ManageFreeSlots from './components/ManageFreeSlots.vue'
 
 const routes = [
   { name:'settings', path: '/settings', component: Settings },
   { name: 'hello', path: '/hello', component: Hello },
-  { name:'manageSlots', path: '/manageSlots', component: ManageSlots, props: true}
+  { name:'manageSlots', path: '/manageSlots', component: ManageSlots, props: true},
+  { name:'manageFreeSlots', path: '/manageFreeSlots', component: ManageFreeSlots, props: true}
 ]
 
 const router = new VueRouter({

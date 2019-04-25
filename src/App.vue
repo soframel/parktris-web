@@ -3,8 +3,9 @@
     <b-container fluid>
     <b-row>
      <b-col><router-link to="/hello">Parktris Home</router-link></b-col>
-     <b-col><router-link to="/settings">Settings</router-link></b-col>
+     <b-col><router-link :to="{ name: 'manageFreeSlots', params: {'settings':this.settings}}">Your Free Slots</router-link></b-col>
      <b-col><router-link :to="{ name: 'manageSlots', params: {'settings':this.settings}}">Manage your slots</router-link></b-col>
+     <b-col><router-link to="/settings">Settings</router-link></b-col>
     </b-row>
     </b-container>   
      <!-- route outlet -->
@@ -13,6 +14,7 @@
 </template>
 
 <script>
+
 
 export default {
   name: 'app',
