@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+/************* AREAS **************/
+
 export function loadAreas(settings){
     return  axios.get(settings.url + "/areas", {
         auth: {
@@ -25,7 +27,7 @@ export function loadSlots(settings){
 }
 
 export function deleteSlot(settings, slot){
-    axios.delete(settings.url + "/slots/"+slot.id,
+    return axios.delete(settings.url + "/slots/"+slot.id,
          {
          auth: {
           username: settings.username,
@@ -116,3 +118,25 @@ export function saveDeclaration(settings, decl){
       );
     }
 }
+
+/***************** USERS WANTING SLOTS ******************/
+export function loadUsersThatWantASlot(settings){
+    return axios.get(settings.url + "/users/wantSlot", {
+        auth: {
+         username: settings.username,
+         password: settings.password
+       }, 
+       withCredentials: true
+     }
+     );
+}
+
+/*
+ console.log("fetching users that want a slot");
+    fetch(serverUrl+'/users/wantSlot', {              
+      method: 'GET',
+      headers: {
+        'Authorization': buildToken(login, password)
+      }
+    })
+*/

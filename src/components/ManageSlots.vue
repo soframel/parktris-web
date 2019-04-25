@@ -63,7 +63,7 @@
 
 <script>
 
-import {formatDate, findAreaNameById, getSlotLabel} from '../common'
+import {findAreaNameById} from '../common'
 import {loadAreas, loadSlots, deleteSlot, saveSlot} from '../server'
 
 export default {
@@ -76,7 +76,7 @@ export default {
       slots: null,
       slot: null, 
       showEdit: false,
-      areas: [],
+      areas: []      
     }
   },
   methods: {    
@@ -94,15 +94,14 @@ export default {
         "owner": this.settings.username
       }
       this.slots.push(newSlot)
-      //this.slot=this.slots[this.slots.lemgth-1]
       this.slot=newSlot
       this.showEdit=true
 
     },
     deleteSlot: function(slot){
       console.log("deleting slot "+JSON.stringify(slot))
-      deleteSlot(this.settings, this.slot)
-      .then(response => {       
+      deleteSlot(this.settings, slot)
+      .then(response => {        
         console.log("deleted slot: "+JSON.stringify(response.data))
         this.slots.splice( this.slots.indexOf(slot), 1 );
         this.slot=null
@@ -156,6 +155,7 @@ export default {
         console.log("error in getting slots: "+error)
       }.bind(this))
     }
+
 }
 </script>
 

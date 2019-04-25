@@ -64,7 +64,7 @@
 
 import Datepicker from 'vuejs-datepicker';
 import {formatDate, findAreaNameById, getSlotLabel} from '../common'
-import {loadAreas, loadSlots, loadDeclarations, deleteDeclaration, saveDeclaration} from '../server'
+import {loadAreas, loadSlots, loadDeclarations, deleteDeclaration, saveDeclaration, loadUsersThatWantASlot} from '../server'
 
 export default {
   name: 'ManageFreeSlots',
@@ -77,7 +77,8 @@ export default {
       decl: null, 
       showEdit: false,
       areas: [],
-      slots: []
+      slots: [],
+      usersWantSlot: []
     }
   },
   components: {
@@ -193,6 +194,18 @@ export default {
       .catch(function (error) {
         console.log("error in getting decls: "+error)
       }.bind(this))
+
+
+
+    //load users that want a slot
+    loadUsersThatWantASlot(this.settings)
+    .then(response => {       
+        this.usersWantSlot=response.data;
+    })
+      .catch(function (error) {
+        console.log("error in getting usrs that want a slot: "+error)
+      }.bind(this))
+
     }
     
 }

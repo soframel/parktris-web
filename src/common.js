@@ -1,5 +1,4 @@
 export function formatDate(date){
-    console.log("formatting date "+date+", type="+typeof date)
     if(typeof date !== 'string'){
         return date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
     }
