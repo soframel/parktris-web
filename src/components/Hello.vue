@@ -5,9 +5,9 @@
       Welcome to Parktris.
     </p>
 
-      <p v-if="this.settings.wantSlot">
-        Check available slots !
-      </p>
+        <p v-if="this.settings && this.settings.wantSlot">
+          Check available slots !
+        </p>
 
   </div>
 </template>
@@ -28,9 +28,9 @@ export default {
   }, 
   beforeMount: function(){
     //redirect if no server settings
-    if(!this.settings){
+    /*if(!this.settings){
       this.$router.push('/')
-    }
+    }*/
 
   }
 }

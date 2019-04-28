@@ -2,9 +2,9 @@
   <div class="settings">
     <h1>Server Settings</h1>
    
-   <p>Server URL: <input v-model="url" placeholder="http://localhost:8080"></p>
-   <p>Username: <input v-model="username"  placeholder="login"></p>
-    <p>Password: <input v-model="password" type="password" placeholder="password"></p>
+   <p>Server URL: <input v-model="settings.url" v-on:="" placeholder="http://localhost:8080"></p>
+   <p>Username: <input v-model="settings.username"  placeholder="login"></p>
+    <p>Password: <input v-model="settings.password" type="password" placeholder="password"></p>
   
       <div>
       <b-button v-on:click="checkConnection">Validate</b-button>
@@ -12,7 +12,8 @@
       <div class="message">{{message}}</div>
 
   <br/>
-   <p><toggle-button v-model="wantSlot" @change="changedWantSlot"
+   <p><toggle-button v-model="settings.wantSlot" @change="changedWantSlot" 
+      :sync="true"
       :labels="{checked: 'I need to borrow a slot', unchecked: 'I can lend a slot'}"
       :width="200" :height="30" :font-size="14"
       /></p>
@@ -22,14 +23,14 @@
 
 <script>
 
-import axios from 'axios';
+import {loadSettingsFromStorage} from '../common'
 import {doesUserWantASlot, saveUserWantASlot} from '../server'
 
 /**
  * Settings change page. 
  * Settings contain 2 parts: 
  * - server configuration settings (url, username, password), that are saved in local storage
- * - other settings, that are saved on server ("wantSlot" option for now). This one is loaded from server, and not saved in local storage. 
+ * - other settings, that are saved on server ("wantSlot" option for now). This one is loaded from server + saved in local storage for performance reasons for other pages. 
  * 
  * When settings change (server config or other settings), and event is sent to App with the settings content. 
  */
@@ -38,57 +39,42 @@ export default {
   name: 'Settings',
   data() {
     return {
-       url:null,
-      username:null,
-      password:null,
-      wantSlot:false,
+      settings: {
+        url:null,
+        username:null,
+        password:null,
+        wantSlot:null,
+      },
       message:""
     }
   },
   //Save settings in Local Storage
   methods: {
     checkConnection: function(){
-      axios.get(this.url + "/areas", {
-         auth: {
-          username: this.username,
-          password: this.password
-        }, 
-        withCredentials: true
-      }
-      )
-      .then(function(){
-        this.loadUserWantsSlot();
-        this.sendSettingsEvent()
+      //check connection by getting user settings from server
+      doesUserWantASlot(this.settings)
+      .then(response =>{
+        this.settings.wantSlot=response.data;
         this.message="Connection is working, settings now used on this site."
-    }.bind(this))
+        this.sendSettingsEvent()
+      })
       .catch(function (error) {
         this.message="Connection problem: "+error
       }.bind(this))
     }, 
     sendSettingsEvent(){      
-        var settings={
-          url: this.url,
-          username: this.username,
-          password: this.password, 
-          wantSlot: this.wantSlot
-        }        
-        this.$emit('settings', JSON.stringify(settings))
-    }
-    ,
-    loadUserWantsSlot: function(){
-      doesUserWantASlot({url: this.url,username: this.username,password: this.password})
-      .then(response => {      
-          this.wantSlot=response.data;
-      })
-        .catch(function (error) {
-          console.log("error in getting user wants a slot: "+error)
-        }.bind(this))
-    },    
+        this.$emit('settings', JSON.stringify(this.settings))
+    },
     changedWantSlot: function(e){
       console.log("changing wantSlot to "+e.value)
-      saveUserWantASlot({url: this.url,username: this.username,password: this.password}, e.value)
+      this.settings.wantSlot=e.value
+      //first save on localStorage
+      localStorage.wantSlot = this.settings.wantSlot;
+      //then on server
+      saveUserWantASlot(this.settings, this.settings.wantSlot)
       .then(() => {      
           console.log("saved wantSlot - updating settings")
+          //then send event
           this.sendSettingsEvent();
       })
         .catch(function (error) {
@@ -97,29 +83,29 @@ export default {
     }
   },
   mounted() {
-    if (localStorage.url) {
-      this.url = localStorage.url;
-    }
-     if (localStorage.username) {
-      this.username = localStorage.username;
-    }
-     if (localStorage.password) {
-      this.password = localStorage.password;
-    }
+    this.settings=loadSettingsFromStorage()
 
-    if(this.url){
-      this.loadUserWantsSlot();
-    }
+    //also reload want slot from server, to be sure it is synchronized
+    doesUserWantASlot(this.settings)
+      .then(response => {     
+        console.log("got updated wantSlot from server: "+response.data) 
+        if(this.settings.wantSlot!=response.data){
+            console.log("There was a mismatch between storage and server data, updating ")
+            //update value in data + local storage
+            this.settings.wantSlot=response.data;
+            localStorage.wantSlot = this.settings.wantSlot;
+          }
+      })
+        .catch(function (error) {
+          console.log("error in getting user wants a slot: "+error)
+        }.bind(this))
   },
   watch: {
-    url(s) {
-      localStorage.url = s;
-    },
-     username(s) {
-      localStorage.username = s;
-    },
-     password(s) {
-      localStorage.password = s;
+    settings(s) {
+      localStorage.url = s.url;
+      localStorage.username = s.username;
+      localStorage.password=s.password;
+      localStorage.wantSlot=s.wantSlot;
     }
   }
 }
