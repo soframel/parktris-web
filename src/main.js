@@ -4,9 +4,11 @@ import BootstrapVue from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import VueRouter from 'vue-router'
+import ToggleButton from 'vue-js-toggle-button'
 
 Vue.use(BootstrapVue)
 Vue.use(VueRouter)
+Vue.use(ToggleButton)
 Vue.config.productionTip = false
 
 //Routes
@@ -17,7 +19,7 @@ import ManageFreeSlots from './components/ManageFreeSlots.vue'
 
 const routes = [
   { name:'settings', path: '/settings', component: Settings },
-  { name: 'hello', path: '/hello', component: Hello },
+  { name: 'hello', path: '/hello', component: Hello , props: true},
   { name:'manageSlots', path: '/manageSlots', component: ManageSlots, props: true},
   { name:'manageFreeSlots', path: '/manageFreeSlots', component: ManageFreeSlots, props: true}
 ]

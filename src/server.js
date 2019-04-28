@@ -120,8 +120,8 @@ export function saveDeclaration(settings, decl){
 }
 
 /***************** USERS WANTING SLOTS ******************/
-export function loadUsersThatWantASlot(settings){
-    return axios.get(settings.url + "/users/wantSlot", {
+export function doesUserWantASlot(settings){
+    return axios.get(settings.url + "/users/wantSlot/"+settings.username, {
         auth: {
          username: settings.username,
          password: settings.password
@@ -131,12 +131,15 @@ export function loadUsersThatWantASlot(settings){
      );
 }
 
-/*
- console.log("fetching users that want a slot");
-    fetch(serverUrl+'/users/wantSlot', {              
-      method: 'GET',
-      headers: {
-        'Authorization': buildToken(login, password)
-      }
-    })
-*/
+export function saveUserWantASlot(settings, wantSlot){
+  return axios.put(settings.url + "/users/wantSlot/"+settings.username+"?want="+wantSlot, 
+  wantSlot,
+  {
+      auth: {
+       username: settings.username,
+       password: settings.password
+     }, 
+     withCredentials: true
+   }
+   );
+}

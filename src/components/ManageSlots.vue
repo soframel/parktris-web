@@ -2,7 +2,7 @@
   <div class="manageSlots">
       <h1>Manage Your Slots</h1>
    
-   <p>Your parking slots</p>
+   <p>Here you can add parking slots that you are entitled to lend:</p>
   <table class="list">
     <thead>
         <th>Name</th>
@@ -15,11 +15,8 @@
       <td>{{callfindAreaNameById(slot.areaId)}}</td>
       <td> <b-button v-on:click="editSlot(slot)" variant="outline-primary"><img src="../assets/pencil.svg" alt="edit this slot"/></b-button>
       <b-button v-on:click="deleteSlot(slot)" variant="outline-primary"><img src="../assets/trash.svg" alt="delete this slot"/></b-button></td>
-       <!-- <img src="/open-iconic/svg/icon-name.svg" alt="icon name" -->
-      <!--<td> <b-button v-on:click="deleteSlot(slot)">Delete</b-button></td>-->
     </tr>
   </table>
- <!--<b-button v-on:click="addSlot()">Add a new slot</b-button>-->
  <b-button v-on:click="addSlot()" variant="outline-primary"><img src="../assets/plus.svg" alt="add a slot"/></b-button>
 
 <!--Edit modal window -->
@@ -81,7 +78,6 @@ export default {
   },
   methods: {    
     editSlot: function(slot){
-      console.log("editing slot "+JSON.stringify(slot))
       this.slot=slot
       this.showEdit=true
 
@@ -99,10 +95,8 @@ export default {
 
     },
     deleteSlot: function(slot){
-      console.log("deleting slot "+JSON.stringify(slot))
       deleteSlot(this.settings, slot)
-      .then(response => {        
-        console.log("deleted slot: "+JSON.stringify(response.data))
+      .then(() => {        
         this.slots.splice( this.slots.indexOf(slot), 1 );
         this.slot=null
         this.showEdit=false
@@ -112,10 +106,8 @@ export default {
       }.bind(this))
     },
     saveSlot: function(){
-      console.log("saving slot "+JSON.stringify(this.slot))
       saveSlot(this.settings, this.slot)
       .then(response => {       
-        console.log("created slot: "+JSON.stringify(response.data))
         this.slot.id=response.data.id
         this.showEdit=false
     })
@@ -127,19 +119,16 @@ export default {
       return findAreaNameById(this.areas, id)
     }
   },
-  beforeMount: function(){
-  //redirect if no server settings
+  mounted: function(){    
+ //redirect if no server settings
     if(!this.settings){
       this.$router.push('hello')
     }
-  },
-  mounted: function(){    
-
+    else{
     //load areas
     loadAreas(this.settings)
       .then(response => {       
         this.areas=response.data;
-        console.log("loaded areas: "+JSON.stringify(this.areas))
     })
       .catch(function (error) {
         console.log("error in getting areas: "+error)
@@ -148,14 +137,13 @@ export default {
     //load slots
     loadSlots(this.settings)
       .then(response => {       
-        //console.log("received slots: "+JSON.stringify(response))
         this.slots=response.data;
     })
       .catch(function (error) {
         console.log("error in getting slots: "+error)
       }.bind(this))
     }
-
+}
 }
 </script>
 

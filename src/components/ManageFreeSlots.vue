@@ -1,8 +1,8 @@
 <template>
   <div class="manageFreeSlots">
-      <h1>Free Slots</h1>
+      <h1>Slots to Lend</h1>
    
-   <p>Your free slots:</p>
+   <p>Add times when you can lend your parking slot(s):</p>
   <table class="list">
     <thead>
         <th>Place</th>
@@ -64,7 +64,7 @@
 
 import Datepicker from 'vuejs-datepicker';
 import {formatDate, findAreaNameById, getSlotLabel} from '../common'
-import {loadAreas, loadSlots, loadDeclarations, deleteDeclaration, saveDeclaration, loadUsersThatWantASlot} from '../server'
+import {loadAreas, loadSlots, loadDeclarations, deleteDeclaration, saveDeclaration} from '../server'
 
 export default {
   name: 'ManageFreeSlots',
@@ -78,7 +78,6 @@ export default {
       showEdit: false,
       areas: [],
       slots: [],
-      usersWantSlot: []
     }
   },
   components: {
@@ -106,11 +105,9 @@ export default {
 
     },
     deleteDecl: function(decl){
-      console.log("deleting decl "+JSON.stringify(decl))
       deleteDeclaration(this.settings, decl)
-      .then(response => {       
-        console.log("deleted decl: "+JSON.stringify(response.data))
-        this.decls.splice( this.decls.indexOf(decl), 1 );
+      .then(() => {       
+        this.decls.splice(this.decls.indexOf(decl), 1);
         this.decl=null
         this.showEdit=false
     })
@@ -119,10 +116,8 @@ export default {
       }.bind(this))
     },
     saveDecl: function(){
-      console.log("saving declaration "+JSON.stringify(this.decl))
       saveDeclaration(this.settings, this.decl)
       .then(response => {       
-        console.log("saved decl: "+JSON.stringify(response.data))
         this.decl.id=response.data.id
         this.showEdit=false
       })
@@ -139,7 +134,6 @@ export default {
       );
       if(mySlot){
         var areaName=findAreaNameById(this.areas, mySlot.areaId);
-        console.log("found slot: "+mySlot.name+", area="+mySlot.areaId+" -> found area="+areaName)
         return getSlotLabel(mySlot, areaName)
       }
       else{
@@ -154,30 +148,24 @@ export default {
       return getSlotLabel(slot, areaName)
     }
   },
-  beforeMount: function(){
-  //redirect if no server settings
+  mounted: function(){
+//redirect if no server settings
     if(!this.settings){
       this.$router.push('hello')
     }
-  },
-  mounted: function(){
-
+    else{
     //load areas
-    console.log("loading areas");
       loadAreas(this.settings)
       .then(response => {       
         this.areas=response.data;
-        console.log("loaded areas: "+JSON.stringify(this.areas))
     })
       .catch(function (error) {
         console.log("error in getting areas: "+error)
       }.bind(this))
 
     //load slots
-    console.log("loading slots, URL="+this.settings.url+", username="+this.settings.username);
      loadSlots(this.settings)
       .then(response => {       
-        //console.log("received slots: "+JSON.stringify(response))
         this.slots=response.data;
     })
       .catch(function (error) {
@@ -185,29 +173,15 @@ export default {
       }.bind(this))
     
     //load declarations
-    console.log("loading declarations");
     loadDeclarations(this.settings)
       .then(response => {       
-        //console.log("received slots: "+JSON.stringify(response))
         this.decls=response.data;
     })
       .catch(function (error) {
         console.log("error in getting decls: "+error)
       }.bind(this))
-
-
-
-    //load users that want a slot
-    loadUsersThatWantASlot(this.settings)
-    .then(response => {       
-        this.usersWantSlot=response.data;
-    })
-      .catch(function (error) {
-        console.log("error in getting usrs that want a slot: "+error)
-      }.bind(this))
-
     }
-    
+    }    
 }
 </script>
 
