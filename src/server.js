@@ -66,8 +66,11 @@ export function saveSlot(settings, slot){
 
 /***************** FREE SLOTS DECLARATIONS ******************/
 
-export function loadDeclarations(settings){
-    return axios.get(settings.url + "/declarations?owner="+settings.username, {
+/**
+ * load owner declarations
+ */
+export function loadOwnerFutureDeclarations(settings){
+    return axios.get(settings.url + "/declarations/future?owner="+settings.username, {
         auth: {
          username: settings.username,
          password: settings.password
@@ -75,6 +78,18 @@ export function loadDeclarations(settings){
        withCredentials: true
      }
      );
+}
+
+/** load other declarations, for users wanting to find a slot */
+export function loadAvailableFreeSlotDeclarations(settings){
+  return axios.get(settings.url + "/declarations/available", {
+      auth: {
+       username: settings.username,
+       password: settings.password
+     }, 
+     withCredentials: true
+   }
+   );
 }
 
 export function deleteDeclaration(settings, decl){

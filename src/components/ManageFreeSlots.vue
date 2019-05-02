@@ -39,8 +39,8 @@
                   </select>
                 </p>
                 <!--todo: start date, end date -->
-                <p>Start date: <datepicker v-model="decl.startDate" name="startDate" :monday-first="true"></datepicker></p>
-                <p>End date: <datepicker v-model="decl.endDate" name="endDate" :monday-first="true"></datepicker></p>
+                <p>Start date: <datepicker v-model="decl.startDate" name="startDate" :monday-first="true"  :disabledDates="disabledDates"></datepicker></p>
+                <p>End date: <datepicker v-model="decl.endDate" name="endDate" :monday-first="true"  :disabledDates="disabledDates"></datepicker></p>
             </slot>
           </div>
           <div class="modal-footer">
@@ -64,7 +64,7 @@
 
 import Datepicker from 'vuejs-datepicker';
 import {formatDate, findAreaNameById, getSlotLabel} from '../common'
-import {loadAreas, loadSlots, loadDeclarations, deleteDeclaration, saveDeclaration} from '../server'
+import {loadAreas, loadSlots, loadOwnerFutureDeclarations, deleteDeclaration, saveDeclaration} from '../server'
 
 export default {
   name: 'ManageFreeSlots',
@@ -78,6 +78,9 @@ export default {
       showEdit: false,
       areas: [],
       slots: [],
+      disabledDates: {
+        to: new Date()
+      }
     }
   },
   components: {
@@ -173,7 +176,7 @@ export default {
       }.bind(this))
     
     //load declarations
-    loadDeclarations(this.settings)
+    loadOwnerFutureDeclarations(this.settings)
       .then(response => {       
         this.decls=response.data;
     })

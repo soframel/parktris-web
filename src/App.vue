@@ -3,6 +3,7 @@
     <b-container fluid>
     <b-row>
      <b-col><router-link :to="{ name: 'hello', params: {'settings':this.settings}}">Parktris Home</router-link></b-col>     
+     <b-col v-if="settings.wantSlot"><router-link :to="{ name: 'borrowSlots', params: {'settings':this.settings}}">Borrow Slots</router-link></b-col>
      <b-col v-if="!settings.wantSlot"><router-link :to="{ name: 'manageFreeSlots', params: {'settings':this.settings}}">Lend a Slot</router-link></b-col>
      <b-col v-if="!settings.wantSlot"><router-link :to="{ name: 'manageSlots', params: {'settings':this.settings}}">Manage your slots</router-link></b-col>
      <b-col><router-link to="/settings">Settings</router-link></b-col>
