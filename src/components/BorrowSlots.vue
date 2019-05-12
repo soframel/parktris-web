@@ -9,17 +9,19 @@
         <th>Start Date</th>
         <th>End Date</th>
     </thead>
-    <tr v-for="decl in this.decls" v-bind:key="decl.id">
+    <tr v-for="decl in this.avails" v-bind:key="decl.id">
       <td>{{findSlotDescById(decl.slotId)}}</td>
       <td>{{callFormatDate(decl.startDate)}}</td>
       <td>{{callFormatDate(decl.endDate)}}</td>      
-       <td> <b-button v-on:click="borrow(decl)" variant="outline-primary">Borrow</b-button></td>
+       <td> <b-button v-on:click="openBorrowDialog(decl)" variant="outline-primary">Borrow</b-button></td>
     </tr>
   </table>
 
   <br/>
   <p>These are the slots you have already borrows (in the future):</p>
-  <!--TODO: existing loans-->
+  
+  
+  <!--TODO: show existing loans-->
 
 
 
@@ -69,6 +71,8 @@ export default {
   data() {
     return {
       decls: null,
+      //all declarations + availabilities as objects
+      avails: null,
       slots: null, 
       areas: null,
       showEdit: false,
@@ -108,8 +112,7 @@ export default {
        var areaName=findAreaNameById(this.areas, slot.areaId);
       return getSlotLabel(slot, areaName)
     },
-    borrow: function(decl){
-      //TODO
+    openBorrowDialog: function(decl){
       this.loan={
         startDate: decl.startDate, 
         endDate: decl.endDate
@@ -130,6 +133,20 @@ export default {
       console.log("saving loan "+this.loan)
 
       //this.loan=null
+    }, 
+    createAvails(decls){
+      this.avails=[]    
+      decls.forEach (decl => {
+        decl.availabilities.forEach (avail => {
+          avail.id=decl.id
+          avail.owner=decl.owner
+          avail.slotId=decl.slotId
+          avail.preferredTenants=decl.preferredTenants
+          //leave startDate & endDate as is
+          this.avails.push(avail)          
+        })
+      })
+      console.log("built availabilities: "+JSON.stringify(this.avails))
     }
   },
   mounted: function(){
@@ -160,6 +177,7 @@ export default {
     loadAvailableFreeSlotDeclarations(this.settings)
       .then(response => {       
         this.decls=response.data;
+        this.createAvails(this.decls);
     })
       .catch(function (error) {
         console.log("error in getting available free slots decls: "+error)
