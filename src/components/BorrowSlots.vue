@@ -18,11 +18,21 @@
   </table>
 
   <br/>
-  <p>These are the slots you have already borrows (in the future):</p>
-  
-  
-  <!--TODO: show existing loans-->
 
+  <p>These are your future reservations:</p>
+  <table class="list">
+    <thead>
+        <th>Place</th>
+        <th>Start Date</th>
+        <th>End Date</th>
+    </thead>
+    <tr v-for="loan in this.loans" v-bind:key="loan.id">
+      <td>{{findSlotDescById(loan.slotId)}}</td>
+      <td>{{callFormatDate(loan.startDate)}}</td>
+      <td>{{callFormatDate(loan.endDate)}}</td>      
+      <td><b-button v-on:click="deleteLoan(loan)" variant="outline-primary"><img src="../assets/trash.svg" alt="delete this loan"/></b-button></td>
+    </tr>
+  </table>
 
 
 <!--Edit modal window -->
@@ -61,7 +71,7 @@
 
 import Datepicker from 'vuejs-datepicker';
 import {formatDate, findAreaNameById, getSlotLabel} from '../common'
-import {loadAreas, loadSlots, loadAvailableFreeSlotDeclarations} from '../server'
+import {loadAreas, loadSlots, loadAvailableFreeSlotDeclarations, loadLoans, saveLoan, deleteLoan} from '../server'
 
 export default {
   name: 'BorrowSlots',
@@ -77,6 +87,7 @@ export default {
       areas: null,
       showEdit: false,
       loan: null, 
+      loans: null,
       disabledStartDates: null,
       disabledEndDates: null
     }
@@ -112,13 +123,23 @@ export default {
        var areaName=findAreaNameById(this.areas, slot.areaId);
       return getSlotLabel(slot, areaName)
     },
-    openBorrowDialog: function(decl){
+    createAvailabilityId: function(decl, avail){
+      return decl.id+"_"+avail.startDate+"_"+avail.endDate
+    },
+    findDeclIdFromAvailability: function(avail){
+      return avail.id.substring(0, avail.id.indexOf("_"))
+    },
+    openBorrowDialog: function(avail){
       this.loan={
-        startDate: decl.startDate, 
-        endDate: decl.endDate
+        declId:this.findDeclIdFromAvailability(avail),
+        slotId:avail.slotId,
+        tenant:this.settings.username,
+        owner:avail.owner,
+        startDate: avail.startDate, 
+        endDate: avail.endDate
         }
-      var lastDisabled=new Date(decl.startDate)
-      var firstDisabled=new Date(decl.endDate)
+      var lastDisabled=new Date(avail.startDate)
+      var firstDisabled=new Date(avail.endDate)
       this.disabledStartDates={
         to: lastDisabled
       }
@@ -126,19 +147,44 @@ export default {
         from: firstDisabled
       }
       this.showEdit=true
-      console.log("borrowing a slot for decl="+JSON.stringify(decl))
+      console.log("borrowing a slot for decl="+JSON.stringify(avail)+", initial loan="+JSON.stringify(this.loan))
     }, 
     saveLoan: function(){
       this.showEdit=false
       console.log("saving loan "+this.loan)
+      saveLoan(this.settings, this.loan)  
+      .then(response => {       
+        this.loan.id=response.data.id
+        this.showEdit=false
+        this.loans.push(this.loan) 
 
-      //this.loan=null
+        //also remove corresponding availability !
+        this.loadDeclarations()
+      })
+      .catch(function (error) {
+        console.log("error in creating loan: "+error)
+      }.bind(this))     
+     
     }, 
+    deleteLoan: function(loan){
+      console.log("deleting loan "+loan)
+      deleteLoan(this.settings, loan)     
+      .then(() => {       
+         this.loans.splice(this.loans.indexOf(loan), 1); 
+        this.loan=null
+        //also reset corresponding availability !
+        this.loadDeclarations()
+    })
+      .catch(function (error) {
+        console.log("error in deleting loan: "+error)
+      }.bind(this))
+      
+    },
     createAvails(decls){
       this.avails=[]    
       decls.forEach (decl => {
         decl.availabilities.forEach (avail => {
-          avail.id=decl.id
+          avail.id=this.createAvailabilityId(decl, avail)
           avail.owner=decl.owner
           avail.slotId=decl.slotId
           avail.preferredTenants=decl.preferredTenants
@@ -147,8 +193,21 @@ export default {
         })
       })
       console.log("built availabilities: "+JSON.stringify(this.avails))
+    }, 
+     loadDeclarations: function(){
+      loadAvailableFreeSlotDeclarations(this.settings)
+      .then(response => {               
+        this.decls=response.data;
+        console.log("loaded declarations: "+this.decls)
+        this.createAvails(this.decls);
+    })
+      .catch(function (error) {
+        console.log("error in getting available free slots decls: "+error)
+      }
+      .bind(this))
     }
   },
+
   mounted: function(){
     //redirect if no server settings
     if(!this.settings){
@@ -174,17 +233,29 @@ export default {
       }.bind(this))
     
     //load available declarations
-    loadAvailableFreeSlotDeclarations(this.settings)
+     /*loadAvailableFreeSlotDeclarations(this.settings)
       .then(response => {       
         this.decls=response.data;
         this.createAvails(this.decls);
     })
       .catch(function (error) {
         console.log("error in getting available free slots decls: "+error)
-      }.bind(this))
+      }
+      .bind(this))*/
+      this.loadDeclarations()
     
+    //load loans
+     loadLoans(this.settings)
+      .then(response => {       
+        this.loans=response.data;
+        console.log("loaded loans: "+this.loans)
+    })
+      .catch(function (error) {
+        console.log("error in getting loans: "+error)
+      }.bind(this))
+
     }
-    }    
+  }    
 }
 </script>
 

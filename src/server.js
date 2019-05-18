@@ -158,3 +158,42 @@ export function saveUserWantASlot(settings, wantSlot){
    }
    );
 }
+
+/******************** LOANS *************************/
+
+export function loadLoans(settings){
+  return axios.get(settings.url + "/loans?tenant="+settings.username, {
+      auth: {
+       username: settings.username,
+       password: settings.password
+     }, 
+     withCredentials: true
+   }
+   );
+}
+
+export function saveLoan(settings, loan){
+      //create
+      return axios.post(settings.url + "/loans/",
+       loan, 
+       {
+       auth: {
+        username: settings.username,
+        password: settings.password
+      }, 
+      withCredentials: true
+      })
+}
+
+export function deleteLoan(settings, loan){
+  return axios.delete(settings.url + "/loans/"+loan.id,
+  {
+  auth: {
+   username: settings.username,
+   password: settings.password
+ }, 
+ withCredentials: true
+ }
+);
+}
+
