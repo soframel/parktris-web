@@ -2,7 +2,7 @@
   <div id="app">
     <b-container fluid>
     <b-row>
-     <b-col><router-link :to="{ name: 'hello', params: {'settings':this.settings}}">Parktris Home</router-link></b-col>     
+     <!--<b-col><router-link :to="{ name: 'hello', params: {'settings':this.settings}}">Parktris Home</router-link></b-col>-->
      <b-col v-if="settings.wantSlot"><router-link :to="{ name: 'borrowSlots', params: {'settings':this.settings}}">Borrow Slots</router-link></b-col>
      <b-col v-if="!settings.wantSlot"><router-link :to="{ name: 'manageFreeSlots', params: {'settings':this.settings}}">Lend a Slot</router-link></b-col>
      <b-col v-if="!settings.wantSlot"><router-link :to="{ name: 'manageSlots', params: {'settings':this.settings}}">Manage your slots</router-link></b-col>
@@ -53,7 +53,15 @@ export default {
      console.log("App: all settings loaded. url="+this.settings.url+", wantSlot="+this.settings.wantSlot)
    },
    mounted() {
-    this.$router.push({ name: 'hello', params: { settings: this.settings } })     
+      if(!this.settings){
+          this.$router.push({ name: 'settings' })
+      }
+      else if(this.settings.wantSlot){
+        this.$router.push({ name: 'borrowSlots', params: { settings: this.settings } })
+      }
+      else{
+          this.$router.push({ name: 'manageFreeSlots', params: { settings: this.settings } })
+      }
   },
 }
 </script>

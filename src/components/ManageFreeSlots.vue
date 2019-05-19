@@ -26,11 +26,12 @@
         <div class="modal-container">
           <div class="modal-header">
             <slot name="header">
-              <h3>Free Slot Declaration</h3>
+                <h3>Free Slot Declaration</h3>
             </slot>
           </div>
           <div class="modal-body">
-            <slot name="body">                          
+            <slot name="body">
+                <p>(all dates are inclusive)</p>
                 <p>
                   <select class="form-control" v-model="decl.slotId">
                     <option v-for="slot in this.slots" v-bind:value="slot.id" v-bind:key="slot.id">

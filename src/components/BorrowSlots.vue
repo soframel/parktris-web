@@ -1,6 +1,7 @@
 <template>
     <div class="borrowSlots">
         <h1>Borrow parking slots</h1>
+        <p>(all dates are inclusive)</p>
 
         <p>These are the slots you can borrow: </p>
         <table class="list">
@@ -18,9 +19,10 @@
                 </td>
             </tr>
         </table>
-
+        <div v-if="message" class="message">{{message}}</div>
         <br/>
 
+        <h3>Future reservations:</h3>
         <p>These are your future reservations:</p>
         <table class="list">
             <thead>
@@ -52,6 +54,7 @@
                     </div>
                     <div class="modal-body">
                         <slot name="body">
+                            <p>(all dates are inclusive)</p>
                             <p>Start date:
                                 <datepicker v-model="loan.startDate" name="startDate" :monday-first="true"
                                             :disabledDates="disabledStartDates"></datepicker>
@@ -83,7 +86,7 @@
 
     import Datepicker from 'vuejs-datepicker';
     import {formatDate, findAreaNameById, getSlotLabel} from '../common'
-    import {loadAreas, loadSlots, loadAvailableFreeSlotDeclarations, loadLoans, saveLoan, deleteLoan} from '../server'
+    import {loadAreas, loadSlots, loadAvailableFreeSlotDeclarations, loadFutureLoans, saveLoan, deleteLoan} from '../server'
 
     export default {
         name: 'BorrowSlots',
@@ -101,7 +104,8 @@
                 loan: null,
                 loans: null,
                 disabledStartDates: null,
-                disabledEndDates: null
+                disabledEndDates: null,
+                message:null
             }
         },
         components: {
@@ -150,9 +154,11 @@
                 var lastDisabled = new Date(possibleStartDate)
                 var firstDisabled = new Date(avail.endDate)
                 this.disabledStartDates = {
-                    to: lastDisabled
+                    to: lastDisabled,
+                    from: firstDisabled
                 }
                 this.disabledEndDates = {
+                    to: lastDisabled,
                     from: firstDisabled
                 }
 
@@ -172,6 +178,7 @@
                 console.log("saving loan " + this.loan)
                 saveLoan(this.settings, this.loan)
                     .then(response => {
+                        this.message=null
                         this.loan.id = response.data.id
                         this.showEdit = false
                         this.loans.push(this.loan)
@@ -181,6 +188,12 @@
                     })
                     .catch(function (error) {
                         console.log("error in creating loan: " + error)
+                        if(error.response && error.response.status=="400"){
+                            this.message="Invalid: please check that the dates you borrow are correct."
+                        }
+                        else{
+                            this.message="error in creating loan: " + error
+                        }
                     }.bind(this))
 
             },
@@ -188,12 +201,14 @@
                 console.log("deleting loan " + loan)
                 deleteLoan(this.settings, loan)
                     .then(() => {
+                        this.message=null
                         this.loans.splice(this.loans.indexOf(loan), 1);
                         this.loan = null
                         //also reset corresponding availability !
                         this.loadDeclarations()
                     })
                     .catch(function (error) {
+                        this.message="error in deleting loan: " + error
                         console.log("error in deleting loan: " + error)
                     }.bind(this))
 
@@ -202,12 +217,20 @@
                 this.avails = []
                 decls.forEach(decl => {
                     decl.availabilities.forEach(avail => {
-                        avail.id = this.createAvailabilityId(decl, avail)
-                        avail.owner = decl.owner
-                        avail.slotId = decl.slotId
-                        avail.preferredTenants = decl.preferredTenants
-                        //leave startDate & endDate as is
-                        this.avails.push(avail)
+                        //test if ends in the future
+                        var endDate=Date.parse(avail.endDate)
+                        var now=new Date().setHours(0, 0, 0, 0)
+                        if(endDate>=now){
+                            avail.id = this.createAvailabilityId(decl, avail)
+                            avail.owner = decl.owner
+                            avail.slotId = decl.slotId
+                            avail.preferredTenants = decl.preferredTenants
+                            //leave startDate & endDate as is
+                            this.avails.push(avail)
+                        }
+                        else{
+                            console.log("masking availability "+avail.startDate+" to "+avail.endDate+" on "+avail.slotId+" because it ends in the past")
+                        }
                     })
                 })
                 console.log("built availabilities: " + JSON.stringify(this.avails))
@@ -215,11 +238,13 @@
             loadDeclarations: function () {
                 loadAvailableFreeSlotDeclarations(this.settings)
                     .then(response => {
+                        this.message=null
                         this.decls = response.data;
                         console.log("loaded declarations: " + this.decls)
                         this.createAvails(this.decls);
                     })
                     .catch(function (error) {
+                        this.message="error in getting available free slots decls: " + error
                         console.log("error in getting available free slots decls: " + error)
                     }
                         .bind(this))
@@ -237,6 +262,7 @@
                         this.areas = response.data;
                     })
                     .catch(function (error) {
+                        this.message="error in getting areas: " + error
                         console.log("error in getting areas: " + error)
                     }.bind(this))
 
@@ -246,28 +272,21 @@
                         this.slots = response.data;
                     })
                     .catch(function (error) {
+                        this.message="error in getting slots: " + error
                         console.log("error in getting slots: " + error)
                     }.bind(this))
 
                 //load available declarations
-                /*loadAvailableFreeSlotDeclarations(this.settings)
-                 .then(response => {
-                   this.decls=response.data;
-                   this.createAvails(this.decls);
-               })
-                 .catch(function (error) {
-                   console.log("error in getting available free slots decls: "+error)
-                 }
-                 .bind(this))*/
                 this.loadDeclarations()
 
                 //load loans
-                loadLoans(this.settings)
+                loadFutureLoans(this.settings)
                     .then(response => {
                         this.loans = response.data;
                         console.log("loaded loans: " + this.loans)
                     })
                     .catch(function (error) {
+                        this.message="error in getting loans: " + error
                         console.log("error in getting loans: " + error)
                     }.bind(this))
 
